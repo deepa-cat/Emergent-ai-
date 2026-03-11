@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,9 +6,10 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 
 ROOT_DIR = Path(__file__).parent
@@ -36,6 +37,22 @@ class StatusCheck(BaseModel):
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+
+
+# DocMind AI Models
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+    document_context: str
+    session_id: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    error: Optional[str] = None
+
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
@@ -65,6 +82,66 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     
     return status_checks
+
+
+# DocMind AI Chat Endpoint
+@api_router.post("/chat", response_model=ChatResponse)
+async def chat_with_ai(request: ChatRequest):
+    """
+    Chat endpoint for DocMind AI
+    Accepts user messages with document context and returns AI response
+    """
+    try:
+        # Get API key from environment
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not api_key:
+            raise HTTPException(status_code=500, detail="API key not configured")
+        
+        # Generate session ID if not provided
+        session_id = request.session_id or str(uuid.uuid4())
+        
+        # System message for DocMind AI
+        system_message = """You are "DocMind AI" - a smart document assistant that reads uploaded files and answers questions.
+CAPABILITIES: Summarize, Q&A, Translate to any language, Key Points, Explain Simply.
+RULES:
+- Base answers ONLY on the provided document content
+- If info is not in the document, say so clearly
+- Reply in the same language the user writes in
+- Be helpful for both Students and Business users"""
+        
+        # Initialize LLM Chat with Claude Sonnet 4
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=session_id,
+            system_message=system_message
+        ).with_model("anthropic", "claude-4-sonnet-20250514")
+        
+        # Get the last user message
+        if not request.messages:
+            raise HTTPException(status_code=400, detail="No messages provided")
+        
+        last_message = request.messages[-1]
+        if last_message.role != "user":
+            raise HTTPException(status_code=400, detail="Last message must be from user")
+        
+        # Combine document context with user message
+        full_message = f"{request.document_context}\n\nUser: {last_message.content}"
+        
+        # Create user message
+        user_message = UserMessage(text=full_message)
+        
+        # Send message and get response
+        response = await chat.send_message(user_message)
+        
+        return ChatResponse(response=response, error=None)
+        
+    except Exception as e:
+        logger.error(f"Chat error: {str(e)}")
+        return ChatResponse(
+            response="",
+            error=f"Error processing request: {str(e)}"
+        )
+
 
 # Include the router in the main app
 app.include_router(api_router)

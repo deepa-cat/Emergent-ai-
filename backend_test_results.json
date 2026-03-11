@@ -1,0 +1,79 @@
+{
+  "total_tests": 8,
+  "passed_tests": 6,
+  "failed_tests": 2,
+  "success_rate": 75.0,
+  "test_details": [
+    {
+      "test_name": "API Root",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "message": "Hello World"
+      }
+    },
+    {
+      "test_name": "POST /status",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "id": "376c18c0-8140-4929-80c5-ff31fbe4ce48",
+        "client_name": "test_client_100018",
+        "timestamp": "2026-03-11T10:00:18.363619Z"
+      }
+    },
+    {
+      "test_name": "GET /status",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "count": 1
+      }
+    },
+    {
+      "test_name": "POST /chat (Basic)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "response": "Hello! Yes, I'd be happy to help you with your document about artificial intelligence and machine learning. \n\nI can assist you in several ways:\n- **Summarize** the document's main points\n- **Answer questions** about the content\n- **Translate** sections to any language you need\n- **Extract key points** for easy reference\n- **Explain concepts simply** if they seem complex\n\nWhat would you like me to help you with regarding your AI and machine learning document? Feel free to ask any specific questions about the content!"
+      }
+    },
+    {
+      "test_name": "POST /chat (Document Q&A)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "response": "Based on the document, the three main types of machine learning are:\n\n1. **Supervised Learning**: Uses labeled data to train models\n2. **Unsupervised Learning**: Finds patterns in unlabeled data  \n3. **Reinforcement Learning**: Learns through interaction with environment\n\nEach type has a distinct approach to how the machine learning system learns from data.",
+        "content_check": "\u2705 Found all 3 ML types"
+      }
+    },
+    {
+      "test_name": "POST /chat (Tamil)",
+      "success": true,
+      "status_code": 200,
+      "error": null,
+      "response_data": {
+        "response": "\u0bae\u0ba9\u0bcd\u0ba9\u0bbf\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd, \u0ba8\u0bc0\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b95\u0bc1\u0bb1\u0bbf\u0baa\u0bcd\u0baa\u0bbf\u0b9f\u0bcd\u0b9f \u0b86\u0bb5\u0ba3\u0ba4\u0bcd\u0ba4\u0bc8 \u0ba8\u0bbe\u0ba9\u0bcd \u0baa\u0bbe\u0bb0\u0bcd\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8. \u0ba8\u0bc0\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b89\u0ba3\u0bcd\u0bae\u0bc8\u0baf\u0bbe\u0ba9 \u0b86\u0bb5\u0ba3\u0ba4\u0bcd\u0ba4\u0bc8 \u0baa\u0ba4\u0bbf\u0bb5\u0bc7\u0bb1\u0bcd\u0bb1\u0bae\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf \u0bb5\u0bc7\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd.\n\n\u0ba8\u0bc0\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b9a\u0bca\u0ba9\u0bcd\u0ba9 \u0ba4\u0b95\u0bb5\u0bb2\u0bbf\u0ba9\u0bcd \u0b85\u0b9f\u0bbf\u0baa\u0bcd\u0baa\u0b9f\u0bc8\u0baf\u0bbf\u0bb2\u0bcd \u0bae\u0b9f\u0bcd\u0b9f\u0bc1\u0bae\u0bc7 \u0baa\u0ba4\u0bbf\u0bb2\u0bb3\u0bbf\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bc1\u0bae\u0bcd:\n\n**\u0baa\u0bc1\u0ba4\u0bc1\u0baa\u0bcd\u0baa\u0bbf\u0b95\u0bcd\u0b95\u0ba4\u0bcd\u0ba4\u0b95\u0bcd\u0b95 \u0b8e\u0bb0\u0bbf\u0b9a\u0b95\u0bcd\u0ba4\u0bbf\u0baf\u0bbf\u0ba9\u0bcd \u0ba8\u0ba9\u0bcd\u0bae\u0bc8\u0b95\u0bb3\u0bcd:**\n- \u0b9a\u0bc2\u0bb0\u0bbf\u0baf \u0bae\u0bb1\u0bcd\u0bb1\u0bc1\u0bae\u0bcd \u0b95\u0bbe\u0bb1\u0bcd\u0bb1\u0bc1 \u0b9a\u0b95\u0bcd\u0ba4\u0bbf \u0ba8\u0bbf\u0bb2\u0bc8\u0baf\u0bbe\u0ba9 \u0bb5\u0bb3\u0bb0\u0bcd\u0b9a\u0bcd\u0b9a\u0bbf\u0b95\u0bcd\u0b95\u0bc1 \u0b89\u0ba4\u0bb5\u0bc1\u0b95\u0bbf\u0ba9\u0bcd\u0bb1\u0ba9\n\n\u0b86\u0ba9\u0bbe\u0bb2\u0bcd \u0bae\u0bc1\u0bb4\u0bc1\u0bae\u0bc8\u0baf\u0bbe\u0ba9 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0ba4\u0bb0, \u0ba4\u0baf\u0bb5\u0bc1 \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bc1:\n1. PDF, Word \u0b85\u0bb2\u0bcd\u0bb2\u0ba4\u0bc1 text \u0b86\u0bb5\u0ba3\u0ba4\u0bcd\u0ba4\u0bc8 \u0baa\u0ba4\u0bbf\u0bb5\u0bc7\u0bb1\u0bcd\u0bb1\u0bae\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf\u0bc1\u0b99\u0bcd\u0b95\u0bb3\u0bcd\n2. \u0b85\u0ba4\u0ba9\u0bcd \u0baa\u0bbf\u0ba9\u0bcd \u0ba8\u0bbe\u0ba9\u0bcd \u0b85\u0ba8\u0bcd\u0ba4 \u0b86\u0bb5\u0ba3\u0ba4\u0bcd\u0ba4\u0bbf\u0ba9\u0bcd \u0bae\u0bc1\u0bb4\u0bc1 \u0b89\u0bb3\u0bcd\u0bb3\u0b9f\u0b95\u0bcd\u0b95\u0ba4\u0bcd\u0ba4\u0bc8\u0baf\u0bc1\u0bae\u0bcd \u0b85\u0b9f\u0bbf\u0baa\u0bcd\u0baa\u0b9f\u0bc8\u0baf\u0bbe\u0b95 \u0bb5\u0bc8\u0ba4\u0bcd\u0ba4\u0bc1 \u0ba4\u0bae\u0bbf\u0bb4\u0bbf\u0bb2\u0bcd \u0bb5\u0bbf\u0bb0\u0bbf\u0bb5\u0bbe\u0ba9 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0ba4\u0bb0\u0bc1\u0bb5\u0bc7\u0ba9\u0bcd\n\n\u0b86\u0bb5\u0ba3\u0ba4\u0bcd\u0ba4\u0bc8 \u0baa\u0ba4\u0bbf\u0bb5\u0bc7\u0bb1\u0bcd\u0bb1 \u0ba4\u0baf\u0bbe\u0bb0\u0bbe?"
+      }
+    },
+    {
+      "test_name": "POST /chat (Invalid - Empty Messages)",
+      "success": false,
+      "status_code": 200,
+      "error": "Should return 400 for empty messages",
+      "response_data": null
+    },
+    {
+      "test_name": "POST /chat (Missing Context)",
+      "success": false,
+      "status_code": 422,
+      "error": "Should handle missing context",
+      "response_data": null
+    }
+  ]
+}
