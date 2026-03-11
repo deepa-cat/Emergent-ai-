@@ -92,6 +92,14 @@ async def chat_with_ai(request: ChatRequest):
     Accepts user messages with document context and returns AI response
     """
     try:
+        # Validate messages array
+        if not request.messages or len(request.messages) == 0:
+            raise HTTPException(status_code=400, detail="Messages array cannot be empty")
+        
+        # Validate document context
+        if not request.document_context or not request.document_context.strip():
+            raise HTTPException(status_code=400, detail="Document context is required")
+        
         # Get API key from environment
         api_key = os.environ.get('EMERGENT_LLM_KEY')
         if not api_key:
@@ -117,9 +125,6 @@ RULES:
         ).with_model("anthropic", "claude-4-sonnet-20250514")
         
         # Get the last user message
-        if not request.messages:
-            raise HTTPException(status_code=400, detail="No messages provided")
-        
         last_message = request.messages[-1]
         if last_message.role != "user":
             raise HTTPException(status_code=400, detail="Last message must be from user")
@@ -135,6 +140,8 @@ RULES:
         
         return ChatResponse(response=response, error=None)
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Chat error: {str(e)}")
         return ChatResponse(
