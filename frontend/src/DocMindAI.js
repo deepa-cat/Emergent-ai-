@@ -4,6 +4,7 @@ import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_URL = `${BACKEND_URL}/api/chat`;
+const TTS_URL = `${BACKEND_URL}/api/tts`;
 
 const SYSTEM_PROMPT = `You are "DocMind AI" - a smart document assistant that reads uploaded files and answers questions.
 CAPABILITIES: Summarize, Q&A, Translate to any language, Key Points, Explain Simply.
@@ -94,14 +95,12 @@ export default function DocMindAI() {
   const [lang, setLang] = useState("en");
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState(null); // Store current audio object
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const T = UI_TEXT[lang];
   const docReady = activeDocIds.length > 0;
-  
-  // Check if text-to-speech is supported
-  const isTTSSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
@@ -206,20 +205,55 @@ export default function DocMindAI() {
     }
   };
 
-  const speakText = (text) => {
-    if (!isTTSSupported || !window.speechSynthesis) { 
-      return; // Silently fail if not supported
+  const speakText = async (text) => {
+    try {
+      // If already speaking, stop
+      if (speaking && currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        setSpeaking(false);
+        setCurrentAudio(null);
+        return;
+      }
+
+      setSpeaking(true);
+
+      // Call backend TTS API
+      const response = await axios.post(TTS_URL, {
+        text: text.substring(0, 4096), // Limit to 4096 chars
+        voice: "nova", // You can make this configurable
+        speed: 1.0
+      });
+
+      if (response.data.error) {
+        console.error("TTS error:", response.data.error);
+        setSpeaking(false);
+        return;
+      }
+
+      // Convert base64 to audio and play
+      const audioBase64 = response.data.audio;
+      const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
+      
+      audio.onended = () => {
+        setSpeaking(false);
+        setCurrentAudio(null);
+      };
+      
+      audio.onerror = () => {
+        setSpeaking(false);
+        setCurrentAudio(null);
+        console.error("Audio playback error");
+      };
+
+      setCurrentAudio(audio);
+      await audio.play();
+
+    } catch (error) {
+      console.error("TTS error:", error);
+      setSpeaking(false);
+      setCurrentAudio(null);
     }
-    window.speechSynthesis.cancel();
-    if (speaking) { setSpeaking(false); return; }
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang === "ta" ? "ta-IN" : "en-US";
-    utter.rate = 0.95;
-    utter.pitch = 1;
-    utter.onstart = () => setSpeaking(true);
-    utter.onend = () => setSpeaking(false);
-    utter.onerror = () => setSpeaking(false);
-    window.speechSynthesis.speak(utter);
   };
 
   const downloadPDF = () => {
@@ -435,7 +469,7 @@ export default function DocMindAI() {
                       <div style={{ background: msg.role === "user" ? "linear-gradient(135deg,#06b6d4,#3b82f6)" : "rgba(13,24,41,0.8)", color: "#fff", padding: "12px 16px", borderRadius: 12, fontSize: 13, lineHeight: 1.6, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
                         {msg.content}
                       </div>
-                      {msg.role === "assistant" && isTTSSupported && (
+                      {msg.role === "assistant" && (
                         <button onClick={() => speakText(msg.content)} style={{ alignSelf: "flex-start", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4", padding: "4px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
                           {speaking ? "⏸ Stop" : "🔊 Speak"}
                         </button>

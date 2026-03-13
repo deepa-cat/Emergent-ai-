@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.responses import Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,6 +11,8 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.openai import OpenAITextToSpeech
+import base64
 
 
 ROOT_DIR = Path(__file__).parent
@@ -52,6 +55,11 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     error: Optional[str] = None
+
+class TTSRequest(BaseModel):
+    text: str
+    voice: Optional[str] = "nova"
+    speed: Optional[float] = 1.0
 
 
 # Add your routes to the router instead of directly to app
@@ -148,6 +156,46 @@ RULES:
             response="",
             error=f"Error processing request: {str(e)}"
         )
+
+
+# Text-to-Speech Endpoint
+@api_router.post("/tts")
+async def text_to_speech(request: TTSRequest):
+    """
+    Convert text to speech using OpenAI TTS
+    Returns audio as base64 encoded string
+    """
+    try:
+        # Get API key from environment
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not api_key:
+            raise HTTPException(status_code=500, detail="API key not configured")
+        
+        # Validate text length (OpenAI limit is 4096 characters)
+        if len(request.text) > 4096:
+            raise HTTPException(status_code=400, detail="Text too long. Maximum 4096 characters.")
+        
+        # Initialize OpenAI TTS
+        tts = OpenAITextToSpeech(api_key=api_key)
+        
+        # Generate speech audio
+        audio_bytes = await tts.generate_speech(
+            text=request.text,
+            model="tts-1",  # Fast model for real-time use
+            voice=request.voice,
+            speed=request.speed
+        )
+        
+        # Convert to base64 for frontend
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        
+        return {"audio": audio_base64, "error": None}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"TTS error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"TTS generation failed: {str(e)}")
 
 
 # Include the router in the main app
