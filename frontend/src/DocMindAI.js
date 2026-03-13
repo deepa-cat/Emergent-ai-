@@ -99,6 +99,9 @@ export default function DocMindAI() {
   const recognitionRef = useRef(null);
   const T = UI_TEXT[lang];
   const docReady = activeDocIds.length > 0;
+  
+  // Check if text-to-speech is supported
+  const isTTSSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
@@ -169,7 +172,11 @@ export default function DocMindAI() {
 
   const startVoice = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert("Voice not supported in this browser. Try Chrome!"); return; }
+    if (!SR) { 
+      // Silently fail or show non-intrusive message
+      console.log("Voice input not supported in this browser");
+      return; 
+    }
     if (listening && recognitionRef.current) {
       recognitionRef.current.stop();
       setListening(false);
@@ -189,19 +196,20 @@ export default function DocMindAI() {
       rec.onerror = (e) => {
         console.error("Voice error:", e.error);
         setListening(false);
-        if (e.error === "not-allowed") alert("Microphone permission denied. Please allow mic access.");
       };
       rec.onend = () => setListening(false);
       rec.start();
       recognitionRef.current = rec;
     } catch (err) {
       setListening(false);
-      alert("Voice error: " + err.message);
+      console.error("Voice error:", err);
     }
   };
 
   const speakText = (text) => {
-    if (!window.speechSynthesis) { alert("Text-to-speech not supported!"); return; }
+    if (!isTTSSupported || !window.speechSynthesis) { 
+      return; // Silently fail if not supported
+    }
     window.speechSynthesis.cancel();
     if (speaking) { setSpeaking(false); return; }
     const utter = new SpeechSynthesisUtterance(text);
@@ -427,7 +435,7 @@ export default function DocMindAI() {
                       <div style={{ background: msg.role === "user" ? "linear-gradient(135deg,#06b6d4,#3b82f6)" : "rgba(13,24,41,0.8)", color: "#fff", padding: "12px 16px", borderRadius: 12, fontSize: 13, lineHeight: 1.6, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
                         {msg.content}
                       </div>
-                      {msg.role === "assistant" && (
+                      {msg.role === "assistant" && isTTSSupported && (
                         <button onClick={() => speakText(msg.content)} style={{ alignSelf: "flex-start", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", color: "#06b6d4", padding: "4px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
                           {speaking ? "⏸ Stop" : "🔊 Speak"}
                         </button>
