@@ -314,13 +314,23 @@ export default function DocMindAI() {
         messages: history,
         document_context: docContext,
         session_id: `docmind-${Date.now()}`
+      }, {
+        timeout: 60000 // 60 second timeout for AI responses
       });
       
       const reply = res.data.response || res.data.error || "Sorry, try again.";
       setMessages([...newMessages, { role: "assistant", content: reply }]);
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages([...newMessages, { role: "assistant", content: "❌ Connection error. Please try again." }]);
+      let errorMsg = "❌ Connection error. Please try again.";
+      if (error.code === 'ECONNABORTED') {
+        errorMsg = "⏱️ Request timed out. The AI is taking longer than usual. Please try again.";
+      } else if (error.response) {
+        errorMsg = `❌ Error: ${error.response.data?.error || error.response.statusText}`;
+      } else if (error.request) {
+        errorMsg = "❌ Network error. Please check your connection and try again.";
+      }
+      setMessages([...newMessages, { role: "assistant", content: errorMsg }]);
     }
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
