@@ -221,36 +221,59 @@ export default function DocMindAI() {
       // Call backend TTS API
       const response = await axios.post(TTS_URL, {
         text: text.substring(0, 4096), // Limit to 4096 chars
-        voice: "nova", // You can make this configurable
+        voice: "nova",
         speed: 1.0
       });
 
       if (response.data.error) {
         console.error("TTS error:", response.data.error);
+        alert("Speech generation failed. Please try again.");
         setSpeaking(false);
         return;
       }
 
-      // Convert base64 to audio and play
+      // Convert base64 to audio blob for better compatibility
       const audioBase64 = response.data.audio;
-      const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
+      const binaryString = window.atob(audioBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(blob);
+      
+      const audio = new Audio(audioUrl);
       
       audio.onended = () => {
         setSpeaking(false);
         setCurrentAudio(null);
+        URL.revokeObjectURL(audioUrl);
       };
       
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
+        alert("Audio playback failed. Please check your device volume and try again.");
         setSpeaking(false);
         setCurrentAudio(null);
-        console.error("Audio playback error");
+        URL.revokeObjectURL(audioUrl);
       };
 
       setCurrentAudio(audio);
-      await audio.play();
+      
+      // Try to play with better error handling
+      try {
+        await audio.play();
+      } catch (playError) {
+        console.error("Play error:", playError);
+        alert("Cannot play audio. Please make sure your device isn't in silent mode and try again.");
+        setSpeaking(false);
+        setCurrentAudio(null);
+        URL.revokeObjectURL(audioUrl);
+      }
 
     } catch (error) {
       console.error("TTS error:", error);
+      alert("Failed to generate speech: " + error.message);
       setSpeaking(false);
       setCurrentAudio(null);
     }
